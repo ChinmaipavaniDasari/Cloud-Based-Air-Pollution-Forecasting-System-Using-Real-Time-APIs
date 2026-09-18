@@ -1,0 +1,22 @@
+# Core ML Libraries
+tensorflow==2.20.0
+keras==3.3.3
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.0
+
+# Data Processing
+matplotlib==3.8.4
+seaborn==0.13.2
+plotly==5.22.0
+
+# Utilities
+joblib==1.4.2
+scipy==1.13.0
+h5py==3.11.0
+pyyaml==6.0.1
+
+# API & Deployment
+flask==3.0.3
+flask-cors==4.0.1
+requests==2.31.0

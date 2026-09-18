@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality Intelligence | India Pollution Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --good: #10b981;
+            --moderate: #f59e0b;
+            --unhealthy: #ef4444;
+            --very-unhealthy: #8b5cf6;
+            --hazardous: #7c2d12;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background: var(--primary);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-text h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-text p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .last-updated {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 15px;
+            font-style: italic;
+            background: rgba(37, 99, 235, 0.05);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        /* ==================== CONTROL PANEL ==================== */
+        .control-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+
+        .panel-title i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .mode-btn i {
+            font-size: 16px;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .mode-btn:hover:not(.active) {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        /* Input Section */
+        .input-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-group label i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .city-input-container {
+            position: relative;
+        }
+
+        .city-input,
+        .time-select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .city-input:focus,
+        .time-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .suggestion-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: var(--bg-light);
+            color: var(--primary);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            border: 2px solid var(--border);
+        }
+
+        .comparison-section.active {
+            display: block;
+        }
+
+        .cities-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .city-tag {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .city-tag:hover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .city-tag .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .city-tag .remove-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* ML Analysis Section */
+        .ml-analysis-section {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            border: 2px solid var(--border);
+        }
+
+        .ml-analysis-section.active {
+            display: block;
+        }
+
+        .ml-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ml-buttons .btn-secondary {
+            background: white;
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+
+        #mlResults {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 20px;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        #mlResults h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #mlResults h4 i {
+            color: var(--primary);
+        }
+
+        /* ==================== WEATHER IMPACT CARD - EXACTLY LIKE FIRST IMAGE ==================== */
+        .weather-impact-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .weather-impact-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .weather-impact-title i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .weather-impact-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .weather-factor {
+            background: var(--bg-light);
+            padding: 12px 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .weather-factor .factor-name {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .weather-factor .factor-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: inline-block;
+            margin-right: 3px;
+        }
+
+        .weather-factor .factor-unit {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: inline-block;
+        }
+
+        .weather-factor .factor-impact {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 5px;
+            padding: 3px 0;
+        }
+
+        .impact-positive {
+            color: #10b981;
+        }
+
+        .impact-negative {
+            color: #ef4444;
+        }
+
+        .impact-neutral {
+            color: #64748b;
+        }
+
+        /* ==================== DASHBOARD GRID ==================== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .chart-btn {
+            padding: 8px 18px;
+            background: var(--bg-light);
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .chart-btn:hover:not(.active) {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            height: 380px;
+            position: relative;
+        }
+
+        /* City Cards */
+        .city-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .city-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s;
+        }
+
+        .city-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .city-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .city-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .aqi-badge {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .aqi-good {
+            background: var(--good);
+        }
+
+        .aqi-moderate {
+            background: var(--moderate);
+        }
+
+        .aqi-unhealthy {
+            background: var(--unhealthy);
+        }
+
+        .aqi-very-unhealthy {
+            background: var(--very-unhealthy);
+        }
+
+        .aqi-hazardous {
+            background: var(--hazardous);
+        }
+
+        .city-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-light);
+            border-radius: 14px;
+            transition: all 0.2s;
+        }
+
+        .stat-item:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .stat-unit {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .trend-up {
+            color: #ef4444;
+        }
+
+        .trend-down {
+            color: #10b981;
+        }
+
+        .trend-stable {
+            color: var(--text-secondary);
+        }
+
+        /* Forecast Section */
+        .forecast-days {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 12px;
+        }
+
+        .forecast-day {
+            flex: 1;
+            text-align: center;
+            padding: 15px 10px;
+            background: var(--bg-light);
+            border-radius: 14px;
+            transition: all 0.2s;
+        }
+
+        .forecast-day:hover {
+            background: rgba(37, 99, 235, 0.05);
+            transform: translateY(-3px);
+        }
+
+        .forecast-day-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .forecast-day-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .forecast-day-aqi {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ==================== MAP SECTION ==================== */
+        .map-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+        }
+
+        #airQualityMap {
+            width: 100%;
+            height: 500px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 2px solid var(--border);
+            z-index: 1;
+        }
+
+        /* Map Controls */
+        .map-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .map-control-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .map-control-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Map Legend */
+        .map-legend {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-top: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .legend-title {
+            font-weight: 700;
+            margin-bottom: 18px;
+            font-size: 16px;
+            text-align: center;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 2px solid transparent;
+            background: var(--bg-light);
+        }
+
+        .legend-item:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .legend-item.active {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .legend-text {
+            font-weight: 600;
+        }
+
+        .legend-range {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+
+        /* Custom Map Markers */
+        .custom-city-marker {
+            background: transparent;
+            border: none;
+        }
+
+        .custom-city-marker div {
+            transition: transform 0.3s;
+        }
+
+        .custom-city-marker div:hover {
+            transform: scale(1.15);
+            z-index: 1000 !important;
+        }
+
+        /* Leaflet Popup Customization */
+        .leaflet-popup-content {
+            margin: 18px !important;
+            font-family: 'Poppins', sans-serif;
+            min-width: 260px;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 20px !important;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: white !important;
+        }
+
+        .leaflet-popup-tip {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .leaflet-popup-close-button {
+            padding: 10px !important;
+            font-size: 20px !important;
+            color: #64748b !important;
+            font-weight: 600 !important;
+        }
+
+        .leaflet-popup-close-button:hover {
+            color: #1e293b !important;
+            background: transparent !important;
+        }
+
+        /* ==================== COMPARISON TABLE ==================== */
+        .comparison-table-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border);
+            font-size: 14px;
+        }
+
+        td {
+            padding: 16px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: rgba(37, 99, 235, 0.03);
+        }
+
+        .trend-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ==================== POLLUTANT SECTION ==================== */
+        .pollutant-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+        }
+
+        .pollutant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pollutant-card {
+            padding: 25px 20px;
+            border-radius: 16px;
+            background: var(--bg-light);
+            transition: all 0.3s;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .pollutant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            background: white;
+            border-color: var(--primary);
+        }
+
+        .pollutant-card h4 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .pollutant-card i {
+            color: var(--primary);
+        }
+
+        /* ==================== FOOTER ==================== */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            border-top: 2px solid var(--border);
+            margin-top: 40px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        /* ==================== PDF LOADING OVERLAY ==================== */
+        .pdf-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            flex-direction: column;
+            color: white;
+            font-size: 18px;
+            backdrop-filter: blur(5px);
+        }
+
+        .pdf-loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 25px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==================== NOTIFICATION STYLES ==================== */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+
+            .legend-items {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .ml-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .weather-impact-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px 0;
+            }
+
+            .logo-text h1 {
+                font-size: 28px;
+            }
+
+            .logo-text p {
+                font-size: 14px;
+            }
+
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .city-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .chart-controls {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+
+            .chart-btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .forecast-days {
+                flex-direction: column;
+            }
+
+            .map-controls {
+                flex-direction: column;
+            }
+
+            .map-control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .legend-items {
+                gap: 10px;
+            }
+
+            .legend-item {
+                width: 100%;
+                justify-content: center;
+            }
+
+            th,
+            td {
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+
+            .pollutant-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .weather-impact-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-text h1 {
+                font-size: 24px;
+            }
+
+            .logo-text p {
+                font-size: 12px;
+            }
+
+            .panel-title {
+                font-size: 18px;
+            }
+
+            .mode-selector {
+                flex-direction: column;
+            }
+
+            .mode-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .city-card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .chart-title {
+                font-size: 18px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .weather-impact-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* ==================== SCROLLBAR STYLES ==================== */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+            border: 2px solid var(--bg-light);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* ==================== UTILITY CLASSES ==================== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 {
+            margin-top: 10px;
+        }
+
+        .mt-2 {
+            margin-top: 20px;
+        }
+
+        .mt-3 {
+            margin-top: 30px;
+        }
+
+        .mb-1 {
+            margin-bottom: 10px;
+        }
+
+        .mb-2 {
+            margin-bottom: 20px;
+        }
+
+        .mb-3 {
+            margin-bottom: 30px;
+        }
+
+        .p-1 {
+            padding: 10px;
+        }
+
+        .p-2 {
+            padding: 20px;
+        }
+
+        .p-3 {
+            padding: 30px;
+        }
+
+        /* ==================== PRINT STYLES ==================== */
+        @media print {
+
+            .control-panel,
+            .mode-selector,
+            .action-buttons,
+            .map-controls,
+            .chart-controls,
+            .btn,
+            .footer {
+                display: none !important;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .chart-section,
+            .map-section,
+            .comparison-table-section,
+            .pollutant-section,
+            .weather-impact-card {
+                box-shadow: none;
+                border: 1px solid var(--border);
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PDF Loading Overlay -->
+    <div class="pdf-loading-overlay" id="pdfLoadingOverlay">
+        <div class="pdf-loading-spinner"></div>
+        <div>Generating Comprehensive PDF Report...</div>
+        <div style="font-size: 14px; margin-top: 10px; color: rgba(255, 255, 255, 0.7);">This may take a few seconds
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-wind"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Air Quality Intelligence</h1>
+                    <p>Real-time Pollution Monitoring System - India</p>
+                </div>
+            </div>
+            <div class="last-updated" id="lastUpdated">Last updated: Loading...</div>
+        </header>
+
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <div class="panel-title">
+                <i class="fas fa-sliders-h"></i>
+                <span>Air Quality Analysis Controls</span>
+            </div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" id="singleCityBtn">
+                    <i class="fas fa-city"></i> Single City
+                </button>
+                <button class="mode-btn" id="compareCitiesBtn">
+                    <i class="fas fa-balance-scale"></i> Compare Cities
+                </button>
+                <button class="mode-btn" id="mlAnalysisBtn">
+                    <i class="fas fa-brain"></i> AI Analysis
+                </button>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="cityInput"><i class="fas fa-map-marker-alt"></i> Select Indian City</label>
+                    <div class="city-input-container">
+                        <input type="text" id="cityInput" class="city-input"
+                            placeholder="e.g., Delhi, Mumbai, Bangalore, Chennai" value="Delhi, India">
+                        <div class="suggestions-dropdown" id="suggestions"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="timeRange"><i class="fas fa-calendar-alt"></i> Time Period</label>
+                    <select id="timeRange" class="time-select">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 3 months</option>
+                        <option value="180">Last 6 months</option>
+                        <option value="365">Last year</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="metricSelect"><i class="fas fa-chart-line"></i> Metric</label>
+                    <select id="metricSelect" class="time-select">
+                        <option value="aqi" selected>AQI (Overall)</option>
+                        <option value="pm25">PM2.5</option>
+                        <option value="pm10">PM10</option>
+                        <option value="no2">NO₂</option>
+                        <option value="so2">SO₂</option>
+                        <option value="co">CO</option>
+                        <option value="o3">O₃</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="visualizeBtn">
+                    <i class="fas fa-chart-bar"></i> Visualize Air Quality
+                </button>
+                <button class="btn btn-secondary" id="addToCompareBtn">
+                    <i class="fas fa-plus-circle"></i> Add to Comparison
+                </button>
+                <button class="btn btn-secondary" id="clearAllBtn">
+                    <i class="fas fa-trash-alt"></i> Clear All
+                </button>
+            </div>
+
+            <!-- Comparison Cities -->
+            <div class="comparison-section" id="comparisonSection">
+                <div class="panel-title" style="margin-bottom: 10px;">
+                    <i class="fas fa-city"></i>
+                    <span>Selected Cities for Comparison</span>
+                </div>
+                <div class="cities-tags" id="citiesTags"></div>
+                <button class="btn btn-primary" id="compareNowBtn" style="width: 100%;">
+                    <i class="fas fa-chart-line"></i> Compare Selected Cities
+                </button>
+            </div>
+
+            <!-- AI Analysis -->
+            <div class="ml-analysis-section" id="mlAnalysisSection">
+                <div class="panel-title" style="margin-bottom: 10px;">
+                    <i class="fas fa-brain"></i>
+                    <span>AI/ML Analysis Options</span>
+                </div>
+                <div class="ml-buttons">
+                    <button class="btn btn-secondary" id="predictBtn">
+                        <i class="fas fa-crystal-ball"></i> Predict AQI (7 Days)
+                    </button>
+                    <button class="btn btn-secondary" id="analyzeTrendsBtn">
+                        <i class="fas fa-chart-line"></i> Analyze Trends
+                    </button>
+                    <button class="btn btn-secondary" id="findPatternsBtn">
+                        <i class="fas fa-project-diagram"></i> Find Patterns
+                    </button>
+                    <button class="btn btn-secondary" id="optimizeBtn">
+                        <i class="fas fa-cogs"></i> Optimization Tips
+                    </button>
+                </div>
+                <div id="mlResults">
+                    <h4>AI Analysis Results</h4>
+                    <div id="mlResultsContent"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== WEATHER IMPACT CARD - EXACTLY LIKE FIRST IMAGE ==================== -->
+        <div class="weather-impact-card">
+            <div class="weather-impact-title">
+                <i class="fas fa-cloud-sun-rain"></i>
+                Current Weather Impact on AQI
+            </div>
+            <div class="weather-impact-grid">
+                <!-- Temperature -->
+                <div class="weather-factor">
+                    <div class="factor-name">Temperature</div>
+                    <div class="factor-value" id="weatherTemp">21</div>
+                    <div class="factor-unit">°C</div>
+                    <div class="factor-impact" id="weatherTempImpact">0% Impact</div>
+                </div>
+                <!-- Humidity -->
+                <div class="weather-factor">
+                    <div class="factor-name">Humidity</div>
+                    <div class="factor-value" id="weatherHumidity">74</div>
+                    <div class="factor-unit">%</div>
+                    <div class="factor-impact" id="weatherHumidityImpact">-15% Impact</div>
+                </div>
+                <!-- Wind Speed -->
+                <div class="weather-factor">
+                    <div class="factor-name">Wind Speed</div>
+                    <div class="factor-value" id="weatherWind">5</div>
+                    <div class="factor-unit">km/h</div>
+                    <div class="factor-impact" id="weatherWindImpact">0% Impact</div>
+                </div>
+                <!-- Pressure -->
+                <div class="weather-factor">
+                    <div class="factor-name">Pressure</div>
+                    <div class="factor-value" id="weatherPressure">1018</div>
+                    <div class="factor-unit">hPa</div>
+                    <div class="factor-impact" id="weatherPressureImpact">0% Impact</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard-grid">
+            <section class="chart-section">
+                <div class="chart-header">
+                    <div class="chart-title" id="chartTitle">AQI Trend Analysis - Delhi</div>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" id="lineChartBtn">Line</button>
+                        <button class="chart-btn" id="barChartBtn">Bar</button>
+                        <button class="chart-btn" id="areaChartBtn">Area</button>
+                        <button class="chart-btn" id="exportChartBtn">
+                            <i class="fas fa-file-pdf"></i> Export Full Report (PDF)
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="aqiChart"></canvas>
+                </div>
+            </section>
+
+            <!-- City Cards -->
+            <div class="city-cards">
+                <div class="city-card">
+                    <div class="city-card-header">
+                        <div class="city-name" id="currentCityName">Delhi</div>
+                        <div class="aqi-badge aqi-hazardous" id="currentAQI">AQI: 256</div>
+                    </div>
+                    <div class="city-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">PM2.5</div>
+                            <div class="stat-value" id="pm25Value">108.5</div>
+                            <div class="stat-unit">μg/m³</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">PM10</div>
+                            <div class="stat-value" id="pm10Value">192.2</div>
+                            <div class="stat-unit">μg/m³</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Temperature</div>
+                            <div class="stat-value" id="tempValue">28°C</div>
+                            <div class="stat-unit"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Humidity</div>
+                            <div class="stat-value" id="humidityValue">45%</div>
+                            <div class="stat-unit"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="city-card">
+                    <div class="city-card-header">
+                        <div class="city-name">3-Day AQI Forecast</div>
+                        <div class="aqi-badge aqi-hazardous" id="tomorrowAQI">Tomorrow: 240</div>
+                    </div>
+
+                    <div class="forecast-days">
+                        <div class="forecast-day">
+                            <div class="forecast-day-label">Tomorrow</div>
+                            <div class="forecast-day-value aqi-hazardous" id="forecastValue1">240</div>
+                            <div class="forecast-day-aqi">Hazardous</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="forecast-day-label">Day 2</div>
+                            <div class="forecast-day-value aqi-very-unhealthy" id="forecastValue2">225</div>
+                            <div class="forecast-day-aqi">Very Unhealthy</div>
+                        </div>
+                        <div class="forecast-day">
+                            <div class="forecast-day-label">Day 3</div>
+                            <div class="forecast-day-value aqi-very-unhealthy" id="forecastValue3">210</div>
+                            <div class="forecast-day-aqi">Very Unhealthy</div>
+                        </div>
+                    </div>
+
+                    <div class="city-stats" style="margin-top: 15px;">
+                        <div class="stat-item">
+                            <div class="stat-label">Trend</div>
+                            <div class="stat-value trend-down" id="trendValue">
+                                <i class="fas fa-arrow-down"></i> 18%
+                            </div>
+                            <div class="stat-unit">Improving</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Health Advice</div>
+                            <div class="stat-value" id="healthAdvice">Avoid Outdoor</div>
+                            <div class="stat-unit" id="healthDetail">Stay indoors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <section class="map-section">
+            <div class="panel-title">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>India Air Quality Map</span>
+            </div>
+
+            <div id="airQualityMap"></div>
+
+            <div class="map-controls">
+                <button class="map-control-btn" id="zoomInBtn">
+                    <i class="fas fa-plus"></i> Zoom In
+                </button>
+                <button class="map-control-btn" id="zoomOutBtn">
+                    <i class="fas fa-minus"></i> Zoom Out
+                </button>
+                <button class="map-control-btn" id="resetViewBtn">
+                    <i class="fas fa-india"></i> Reset View
+                </button>
+                <button class="map-control-btn" id="showAllCitiesBtn">
+                    <i class="fas fa-eye"></i> Show All Cities
+                </button>
+            </div>
+
+            <div class="map-legend">
+                <div class="legend-title">AQI Color Guide (Click to Filter)</div>
+                <div class="legend-items">
+                    <div class="legend-item" data-aqi-range="good" id="legendGood">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <div>
+                            <div class="legend-text">Good</div>
+                            <div class="legend-range">0 - 50 AQI</div>
+                        </div>
+                    </div>
+                    <div class="legend-item" data-aqi-range="moderate" id="legendModerate">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <div>
+                            <div class="legend-text">Moderate</div>
+                            <div class="legend-range">51 - 100 AQI</div>
+                        </div>
+                    </div>
+                    <div class="legend-item" data-aqi-range="unhealthy" id="legendUnhealthy">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <div>
+                            <div class="legend-text">Unhealthy</div>
+                            <div class="legend-range">101 - 150 AQI</div>
+                        </div>
+                    </div>
+                    <div class="legend-item" data-aqi-range="very-unhealthy" id="legendVeryUnhealthy">
+                        <div class="legend-color" style="background: #8b5cf6;"></div>
+                        <div>
+                            <div class="legend-text">Very Unhealthy</div>
+                            <div class="legend-range">151 - 200 AQI</div>
+                        </div>
+                    </div>
+                    <div class="legend-item" data-aqi-range="hazardous" id="legendHazardous">
+                        <div class="legend-color" style="background: #7c2d12;"></div>
+                        <div>
+                            <div class="legend-text">Hazardous</div>
+                            <div class="legend-range">201+ AQI</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
+                    <i class="fas fa-info-circle"></i> Click on any color box above to filter Indian cities by that AQI
+                    range
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Table -->
+        <section class="comparison-table-section">
+            <div class="panel-title">
+                <i class="fas fa-table"></i>
+                <span>City Comparison Analysis</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Current AQI</th>
+                            <th>7-Day Avg</th>
+                            <th>PM2.5</th>
+                            <th>PM10</th>
+                            <th>Trend</th>
+                            <th>Health Impact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparisonTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pollutant Details -->
+        <section class="pollutant-section">
+            <div class="panel-title">
+                <i class="fas fa-vial"></i>
+                <span>Pollutant Concentration Details</span>
+            </div>
+            <div class="pollutant-grid" id="pollutantGrid"></div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Air Quality Intelligence System • Real-time Data for Indian Cities • Updated Every Hour</p>
+            <p>© 2024 Air Quality Monitoring Platform. Data sources: CPCB, SAFAR, IQAir India</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
